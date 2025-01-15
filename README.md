@@ -19,9 +19,9 @@ Develop a chatbot that leverages customer data to provide personalized product r
 
 # Tool
 - Deployment: Streamlit
-- Vector database: Crewai Tool
-- Chatbot Pipeline: Crewai
-- LLM (Large Language Model): GPT 3.5- turbo and GPT 4.0 mini
+- Vector database: FAISS
+- Chatbot Pipeline: Langchain
+- LLM (Large Language Model): GPT 4.0
 - Data Visualization: Looker
 
 # Project instruction
