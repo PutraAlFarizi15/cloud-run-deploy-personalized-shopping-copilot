@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 COPY ./app /code/app
 
 # Ekspos port Streamlit (default 8501)
-#EXPOSE 8501
+EXPOSE 8501
 
 # Jalankan aplikasi Streamlit
 CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
