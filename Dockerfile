@@ -15,7 +15,13 @@ COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # Salin aplikasi
-COPY ./app /code/app
+#COPY ./app /code/app
+
+# Salin file dataset ke dalam container
+#COPY ./Dataset /code/Dataset
+
+# Salin seluruh file proyek ke dalam container
+COPY . /code
 
 # Ekspos port Streamlit (default 8501)
 EXPOSE 8501
