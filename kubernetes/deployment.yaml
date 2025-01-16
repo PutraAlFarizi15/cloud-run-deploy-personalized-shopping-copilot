@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: personalized-shopping-copilot
+  labels:
+    app: personalized-shopping-copilot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: personalized-shopping-copilot
+  template:
+    metadata:
+      labels:
+        app: personalized-shopping-copilot
+    spec:
+      containers:
+      - name: personalized-shopping-copilot
+        image: gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 200m
+            memory: 300Mi
+          limits:
+            memory: 400Mi

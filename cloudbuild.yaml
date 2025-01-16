@@ -1,0 +1,18 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+steps:
+  # build
+  - name: 'gcr.io/cloud-builders/docker' #image prebuild oleh google
+    args: ['build', '-t', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest', '.']
+
+    # push
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest']
+
+  # deploy to cloud run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: ['run', 'deploy', 'personalized-shopping-copilot', '--image', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest','--region', 'us-central1', '--platform', 'managed', '--allow-unauthenticated', '--timeout', '900s'] #
+
+images:
+  - 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest'
