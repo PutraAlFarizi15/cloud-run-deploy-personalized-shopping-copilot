@@ -1,6 +1,10 @@
 # Base image
 FROM python:3.10
 
+# Install dependencies for OpenCV
+RUN apt-get update && \
+    apt-get install -y libgl1-mesa-glx
+
 # Set working directory
 WORKDIR /code
 
