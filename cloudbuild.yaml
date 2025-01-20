@@ -12,7 +12,7 @@ steps:
   # deploy to cloud run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: ['run', 'deploy', 'personalized-shopping-copilot', '--image', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest','--region', 'us-central1', '--platform', 'managed', '--allow-unauthenticated', '--timeout', '900s', '--set-secrets', 'OPENAI_API_KEY=projects/fair-ceiling-441211-m5/secrets/OPENAI_API_KEY/versions/1'] #
+    args: ['run', 'deploy', 'personalized-shopping-copilot', '--image', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest','--region', 'us-central1', '--platform', 'managed', '--allow-unauthenticated', '--timeout', '900s', '--set-secrets', 'OPENAI_API_KEY=projects/674306059126/secrets/OPENAI_API_KEY/versions/latest'] #
 
 images:
   - 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest'
