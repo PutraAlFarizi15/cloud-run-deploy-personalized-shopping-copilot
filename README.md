@@ -1,3 +1,5 @@
+Endpoint: https://personalized-shopping-copilot-674306059126.us-central1.run.app
+
 # Contributor
 | Name  | Job Description |
 | ------------- | ------------- |

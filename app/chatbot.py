@@ -10,6 +10,7 @@ import re
 from gradio_client import Client as GradioClient, file, handle_file
 import cv2
 from dotenv import load_dotenv
+import glob
 
 
 # open your openai api key in file .env
@@ -33,30 +34,6 @@ def retrieve_transcation(cust_id):
 # 2. Retrieval Agent
 def retrieve_documents(query, vector_db, top_k=5):
     return vector_db.similarity_search(query, top_k)
-
-# 3. Generator Agent
-# def generate_response_openai(query, docs, purchase_hist):
-#     # Combine retrieved documents into context
-#     context = "\n\n".join([doc.page_content for doc in docs])
-#     prompt = (
-#         f"Answer the following question based on the context:\n\nContext: {context}\n by providing a similarity with user purchase history:\n\n History : {purchase_hist}\n\n Question: {query}. "
-#         "Provide detailed and accurate answer with maximum 3 products. "
-#         "Always include the reason. "
-#         "If the question is product related, always attach product id"
-#     )
-
-#     completion = openai.chat.completions.create(
-#         model="gpt-4o",  # Adjust the model name as per availability
-#         messages=[
-#             {"role": "system", "content": "You are a helpful assistant. Answer accurately and give reason"},
-#             {"role": "user", "content": prompt}
-#         ],
-#         stream=True
-#     )
-#     for chunk in completion:
-#         if chunk.choices[0].delta.content is not None:
-#             yield chunk.choices[0].delta.content
-    # return completion.choices[0].message.content
 
 def generate_streaming_response_openai(query, docs, purchase_hist):
     # Combine retrieved documents into context
@@ -129,22 +106,32 @@ def virtual_tryon(garment_img_path, person_img_path):
 def render_product(product_id):
     filtered_df = df_products[df_products['Product_ID'] == product_id]
     if not filtered_df.empty:
-        # Mendapatkan URL gambar atau file path
-        url = filtered_df['Url_Image'].iloc[0]
-        img = Image.open(url)
-        img.thumbnail((300, 600))  # Maksimum lebar dan tinggi
+        # Tentukan folder tempat gambar disimpan
+        image_folder = "images"
+        
+        # Cari file gambar berdasarkan product_id tanpa memperhatikan ekstensi
+        pattern = os.path.join(image_folder, f"{product_id}.*")  # Pola: images/101.*
+        matching_files = glob.glob(pattern)  # Mencari file dengan ekstensi apapun
 
-        # Menggunakan tiga kolom untuk memusatkan elemen
-        col1, col2, col3 = st.columns([1, 2, 1])  # Rasio kolom: kiri, tengah, kanan
-        with col2:  # Konten di kolom tengah
-            st.subheader(f"{product_id}")
-            st.image(img)
-            st.button(
-                f"Virtual Try-On for {product_id}",
-                key=f"try_{product_id}",
-                on_click=handle_click,
-                args=("Try ", product_id, url),
-            )
+        if matching_files:
+            image_path = matching_files[0]  # Ambil file pertama yang ditemukan
+            img = Image.open(image_path)
+            img.thumbnail((300, 600))  # Atur ukuran maksimum
+
+            # Menggunakan tiga kolom untuk memusatkan elemen
+            col1, col2, col3 = st.columns([1, 2, 1])  # Rasio kolom: kiri, tengah, kanan
+            with col2:  # Konten di kolom tengah
+                st.subheader(f"{product_id}")
+                st.image(img)
+                st.button(
+                    f"Virtual Try-On for {product_id}",
+                    key=f"try_{product_id}",
+                    on_click=handle_click,
+                    args=("Try ", product_id, image_path),
+                )
+        else:
+            # Jika gambar tidak ditemukan
+            st.error(f"Gambar untuk produk {product_id} tidak ditemukan.")
 
 # Fungsi utama chatbot
 def chatbot_function():
