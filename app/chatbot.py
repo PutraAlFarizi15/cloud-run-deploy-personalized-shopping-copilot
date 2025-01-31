@@ -18,8 +18,12 @@ import glob
 load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 
-df = pd.read_csv('Dataset/Customer_Interaction_Data_v2.csv')
-df_products = pd.read_csv('Dataset/final_product_catalog.csv')
+# Please fill your openai api key
+# openai_api_key = ""
+# os.environ["OPENAI_API_KEY"] = openai_api_key
+
+df = pd.read_csv('Dataset/Customer_Interaction_Data_v3.csv')
+df_products = pd.read_csv('Dataset/final_product_catalog_v2.csv')
 
 # 1. Create Vector Database
 def load_vector_db():
@@ -33,26 +37,42 @@ def retrieve_transcation(cust_id):
 
 # 2. Retrieval Agent
 def retrieve_documents(query, vector_db, top_k=5):
+    # result = vector_db.similarity_search_with_score(query, top_k)
+    # filtered_result = []
+    # for doc, score in result:
+    #     print(score)
+    #     if score > 0.4:
+    #         filtered_result.append(doc)
     return vector_db.similarity_search(query, top_k)
 
 def generate_streaming_response_openai(query, docs, purchase_hist):
     # Combine retrieved documents into context
     context = "\n\n".join([doc.page_content for doc in docs])
     prompt = (
-        f"Answer the following question based on the context:\n\nContext: {context}\n by adding similarity witout adding the product id from history:\n\n History : {purchase_hist}\n\n Question: {query}. "
-        "Provide detailed and accurate answer with maximum 3 products. "
-        "Always include the reason. "
-        "If the question is product related, always attach product id. "
+        "You are an expert product recommendation assistant, designed to provide precise and thoughtful suggestions of fashion. "
+        "Your primary goal is to recommend up to three products based on the provided context, purchase history, and customer query. "
+        "If a question is unrelated to product recommendations, politely inform the user that you can only assist with product-related topics. "
+        "If a query requests gender-specific products, respond with: 'Our catalog has no gender-specific products.' "
+        "Here’s how you should answer: \n\n"
+        "- Always analyze and incorporate similarities from the provided purchase history and context. \n"
+        "- Provide a clear and concise explanation for why each product is recommended. \n"
+        "- Include the product ID for every recommended product. \n"
+        "- Maintain a polite and friendly tone.\n\n"
+        f"Context: {context}\n\n"
+        f"Purchase History: {purchase_hist}\n\n"
+        f"Question: {query}\n\n"
+        "Your response should balance accuracy and detail while remaining concise."
     )
 
     # Call OpenAI API with streaming
     response = openai.chat.completions.create(
-        model="gpt-4",  # Adjust the model name as per availability
+        model="gpt-4o",  # Adjust the model name as per availability
         messages=[
-            {"role": "system", "content": "You are a helpful assistant. Answer accurately and give reason."},
+            {"role": "system", "content": "You are a helpful assistant. Answer accurately and give reason, but always keep the friendly tone."},
             {"role": "user", "content": prompt}
         ],
-        stream=True  # Enable streaming
+        stream=True,  # Enable streaming
+        temperature=0.3
     )
      
     # Placeholder for the response
@@ -134,15 +154,23 @@ def render_product(product_id):
             st.error(f"Gambar untuk produk {product_id} tidak ditemukan.")
 
 # Fungsi utama chatbot
-def chatbot_function():
+def chatbot_function(email):
     # Streamlit Interface
     st.header("💬 Product Recommendation Chatbot")
 
     # Inisialisasi sesi untuk menyimpan percakapan dan ID pelanggan
     if "messages" not in st.session_state:
-        st.session_state["messages"] = [{"role": "assistant", "content": "Welcome! Please provide your Customer ID to start."}]
+        st.session_state["messages"] = [{"role": "assistant", "content": "Welcome! I'm here to help you choose products based on your preferences. How can I assist you today?"}]
+        
     if "customer_id" not in st.session_state:
-        st.session_state["customer_id"] = None
+        customer_id = df[df['Email'] == email]['Customer_ID']
+        print(customer_id.iloc[0])
+        if not customer_id.empty:
+            st.session_state["customer_id"] = customer_id.iloc[0]
+        else:
+            st.error("Customer ID not found for the provided email.")
+            return  # Keluar dari fungsi jika tidak ada Customer ID
+        
     if "clicked_button" not in st.session_state:
         st.session_state.clicked_button = None
     if "product_ids" not in st.session_state:
@@ -164,25 +192,14 @@ def chatbot_function():
         # Simpan dan tampilkan input pengguna
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.chat_message("user").write(prompt)
-
-        # Respons dari asisten
-        if not st.session_state["customer_id"]:
-            # Jika belum ada Customer ID, minta pengguna memasukkan ID
-            st.session_state["customer_id"] = prompt
-            if st.session_state["customer_id"] not in df["Customer_ID"].values:
-                response = "Customer ID not found. Please try again."
-                st.session_state["customer_id"] = None  # Reset ID
-            else:
-                response = f"Thank you! Customer ID '{st.session_state['customer_id']}' has been verified. How can I assist you?"
-        else:
-            # Proses permintaan dengan Crew
-            try:
-                inputs = {"query": prompt, "customer": st.session_state["customer_id"]}
-                vector_db = load_vector_db()
-                transaction_data = retrieve_transcation(st.session_state["customer_id"])
-                response = multi_agent_rag(inputs['query'], vector_db, transaction_data)
-            except Exception as e:
-                response = f"An error occurred: {e}"
+        
+        try:
+            inputs = {"query": prompt, "customer": st.session_state["customer_id"]}
+            vector_db = load_vector_db()
+            transaction_data = retrieve_transcation(st.session_state["customer_id"])
+            response = multi_agent_rag(inputs['query'], vector_db, transaction_data)
+        except Exception as e:
+            response = f"An error occurred: {e}"
 
         # Simpan dan tampilkan respons dari asisten
         st.session_state.messages.append({"role": "assistant", "content": response})

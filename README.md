@@ -91,7 +91,7 @@ Welcome! Please provide your Customer ID to start.
         Event Type: Vacation\
         Reason: This shirt is specifically designed for sunny weather, making it ideal for vacation. Its blue color aligns with your preference, and it falls within a similar price range to your previous purchases, indicating a potential fit for your budget.
         ```
-        ![Struktur Database](image/PROD1457.jpg)\
+        ![Struktur Database](images/PROD1457.jpg)\
         ```bash
         Virtual Try On
         ```
