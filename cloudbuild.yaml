@@ -8,11 +8,22 @@ steps:
     # push
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest']
+    args: [
+
+    ]
 
   # deploy to cloud run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: ['run', 'deploy', 'personalized-shopping-copilot', '--image', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest','--region', 'us-central1', '--platform', 'managed', '--allow-unauthenticated', '--timeout', '900s', '--set-secrets', 'OPENAI_API_KEY=projects/674306059126/secrets/OPENAI_API_KEY/versions/latest'] #
+    args: ['run', 'deploy', 'personalized-shopping-copilot', 
+      '--image', 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest',
+      '--region', 'us-central1', 
+      '--platform', 'managed', 
+      '--allow-unauthenticated', 
+      '--timeout', '900s', 
+      '--set-secrets', 'OPENAI_API_KEY=projects/674306059126/secrets/OPENAI_API_KEY/versions/latest',
+      '--set-secrets', 'REPLICATE_API_TOKEN=projects/674306059126/secrets/REPLICATE_API_TOKEN/versions/latest'
+    ] #
 
 images:
   - 'gcr.io/fair-ceiling-441211-m5/personalized-shopping-copilot:latest'

@@ -33,15 +33,12 @@ def main():
         if menu == "Chatbot":
             information = (
                 "**How to Use:**\n"
-                "- Describe the clothing you’re looking for.\n"
+                "- Describe the clothing you're looking for from the available options: **Dress, Jacket, Skirt, Coat, Suit, Shirt.**.\n"
                 "- To try on a product virtually, click the **Virtual Try-On** button and upload your image.\n\n"
-                 "**Example Queries:**\n"
+                "**Example Queries:**\n"
                 "- *Show me blue suits for a conference.*\n"
                 "- *I need a shirt for a winter hangout.*\n"
-                "- *M-size red skirt, please.*\n\n"
-                "**Available Products:**\n"
-                "- We currently offer the following clothing items: **Dress, Jacket, Skirt, Coat, Suit, Shirt.**\n"
-                "- Note: Our products are not categorized by gender.\n\n"
+                "- *M-size red skirt, please.*"
             )
             st.sidebar.info(information, icon="ℹ️")
             email = st.session_state['user_email']  # Ambil email dari session state

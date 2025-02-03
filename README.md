@@ -1,10 +1,8 @@
-Endpoint: https://personalized-shopping-copilot-674306059126.us-central1.run.app
-
 # Contributor
 | Name  | Job Description |
 | ------------- | ------------- |
-| Brillyando Magathan Achmad  | Data preparation, data cleaning, and preprocessing data. Create, build, and develope multi-agent system, implement virtual try on and integrate to streamlit  |
-| Putra Al Farizi  | Data Preparation, Data Preprocessing, Develop Multi-agent system, Analyze Retention Rate, Average Order Value and Conversion Rate, display recommended product images, Build Streamlit Application Chatbot |
+| Brillyando Magathan Achmad  | Data Preparation, Data Cleaning, and Data Preprocessing. Create, Build, and Develope RAG System, Prompt Engineering, implement Virtual Try-on and integrate to streamlit, integrate to Google Cloud Storage and Deploy to Cloud Run  |
+| Putra Al Farizi  | Data Preparation, Data Preprocessing, Analyze Dataset in Notebook, Develop Chatbot Application using Streamlit with RAG, Streaming Output and Deploy to Cloud Run|
 | Khalid Destiawan  | Data Preparation, Analyze Retention Rate, Average Order Value and Conversion Rate. Dashboard development |
 
 # Business Understanding
@@ -22,8 +20,7 @@ Develop a chatbot that leverages customer data to provide personalized product r
 # Tool
 - Deployment: Streamlit
 - Vector database: FAISS
-- Chatbot Pipeline: Langchain
-- LLM (Large Language Model): GPT 4.0
+- LLM (Large Language Model): GPT-4
 - Data Visualization: Looker
 
 # Project instruction
@@ -55,7 +52,7 @@ Follow these steps to install the project from GitHub:
     openai_api_key = 'your openai api key'
 7. **Run the application using Streamlit**
     ```bash
-    streamlit run main.py
+    streamlit run app/main.py
     ```
 
 ## How to use Application
@@ -103,7 +100,4 @@ Welcome! Please provide your Customer ID to start.
     **Important:** The Virtual Try-On feature has a usage limit. Please use it wisely. 
 
 ## NOTES (IMPORTANT!)
-This app is under development. For frist execute, it maybe will take a lot of time because 
-the dataset is wrote to the chromadb. The product recommendation is not perfect because the tool used is still experimental.
-
 The uploaded image and result from virtual try on will be saved on local, so take a look at your drive.
