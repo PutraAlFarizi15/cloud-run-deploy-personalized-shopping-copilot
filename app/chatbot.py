@@ -9,7 +9,6 @@ from langchain.vectorstores import FAISS
 import os
 import re
 import replicate
-import cv2
 from dotenv import load_dotenv
 import glob
 
@@ -50,20 +49,22 @@ def generate_streaming_response_openai(query, docs, purchase_hist):
     # Combine retrieved documents into context
     context = "\n\n".join([doc.page_content for doc in docs])
     prompt = (
-        "You are an expert product recommendation assistant, designed to provide precise and thoughtful suggestions of fashion. "
-        "Your primary goal is to recommend up to three products based on the provided context, purchase history, and customer query. "
-        "If a question is unrelated to product recommendations, politely inform the user that you can only assist with product-related topics. "
-        "If a query requests gender-specific products, respond with: 'Our catalog has no gender-specific products.' "
-        "Here’s how you should answer: \n\n"
-        "- Always analyze and incorporate similarities from the provided purchase history and context. \n"
-        "- Provide a clear and concise explanation for why each product is recommended. \n"
-        "- Include the product ID for every recommended product. \n"
-        "- Maintain a polite and friendly tone.\n\n"
-        f"Context: {context}\n\n"
-        f"Purchase History: {purchase_hist}\n\n"
-        f"Question: {query}\n\n"
-        "Your response should balance accuracy and detail while remaining concise."
-    )
+    "You are an expert product recommendation assistant, designed to provide precise and thoughtful suggestions of fashion. "
+    "If the user's input is unclear and meaningless, politely inform the user that you can only assist with recommending products, and do not generate suggestions. "
+    "If the product in question is not in the catalog, answer that our product only contain Dress, Jacket, Skirt, Coat, Suit, and Shirt. "
+    "If a query requests gender-specific products, respond with: 'Our catalog has no gender-specific products.' "
+    "Your primary goal is to recommend up to three products based on the provided context, purchase history, and customer query. "
+    "Here’s how you should answer: \n\n"
+    "- If the query does not indicate an interest in fashion products, respond with: 'I can only assist with product recommendations. Please provide more details.'\n"
+    "- Always analyze and incorporate similarities from the provided purchase history and context.\n"
+    "- Provide a clear and concise explanation for why each product is recommended.\n"
+    "- Include the product ID for every recommended product.\n"
+    "- Maintain friendly tone.\n\n"
+    f"Context: {context}\n\n"
+    f"Purchase History: {purchase_hist}\n\n"
+    f"Question: {query}\n\n"
+    "Your response should balance accuracy and detail while remaining concise."
+)
 
     # Call OpenAI API with streaming
     response = openai.chat.completions.create(
@@ -73,7 +74,7 @@ def generate_streaming_response_openai(query, docs, purchase_hist):
             {"role": "user", "content": prompt}
         ],
         stream=True,  # Enable streaming
-        temperature=0.3
+        temperature=0.7
     )
      
     # Placeholder for the response
@@ -157,11 +158,87 @@ def render_product(product_id):
         else:
             # Jika gambar tidak ditemukan
             st.error(f"Gambar untuk produk {product_id} tidak ditemukan.")
+            
+def render_product_horizontal():
+    if st.session_state.product_ids:
+        image_folder = "images"
+        cols = st.columns(len(st.session_state.product_ids))  # Buat kolom berdasarkan jumlah produk
+        
+        for idx, product_id in enumerate(st.session_state.product_ids):
+            filtered_df = df_products[df_products['Product_ID'] == product_id]
+            if not filtered_df.empty:
+                pattern = os.path.join(image_folder, f"{product_id}.*")
+                matching_files = glob.glob(pattern)
+
+                if matching_files:
+                    image_path = matching_files[0]
+                    img = Image.open(image_path)
+                    img = img.resize((300, 400))  # Pastikan semua gambar memiliki rasio 3:4
+                    
+                    with cols[idx]:  # Menempatkan konten dalam kolom
+                        st.markdown(f"<h3 style='text-align: center;'>{product_id}</h3>", unsafe_allow_html=True)
+                        st.image(img)
+                        # Gunakan markdown untuk layout tombol ke tengah
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col2:  # Pusatkan tombol
+                            st.button(
+                                "Try-On",
+                                key=f"try_{product_id}_{idx}",  # Tambahkan indeks untuk keunikan
+                                on_click=handle_click,
+                                args=("Try ", product_id, image_path),
+                            )
+                else:
+                    with cols[idx]:
+                        st.error(f"Gambar untuk produk {product_id} tidak ditemukan.")
+
+# Function to display styled chat messages
+def chat_message(role, content):
+    if role == "user":
+        # User message aligned right
+        st.markdown(
+            f"""
+            <div style='text-align: right; background-color: #3a3d43; padding: 10px; border-radius: 10px; margin: 5px 0; width: fit-content; max-width: 70%; float: right;'>
+                {content}
+            </div>
+            <div style='clear: both;'></div>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        # Assistant message aligned left
+        st.chat_message(role, avatar="material/bot_icon2.png").markdown(content)
+        
+        
+def chat_message_two_icon(role, content):
+    if role == "user":
+        st.markdown(
+            f"""
+            <div style='display: flex; justify-content: flex-end; align-items: center; margin: 5px 0;'>
+                <div style='background-color: #1F45FC; padding: 10px; border-radius: 10px; max-width: 80%; text-align: right;'>
+                    {content}
+                </div>
+                <img src="https://cdn-icons-png.flaticon.com/512/9131/9131529.png" width="30" height="30" style="border-radius: 50%; margin-left: 10px;">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            f"""
+            <div style='display: flex; align-items: top; margin: 5px 0;'>
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" width="30" height="30" style="border-radius: 50%; margin-right: 10px;">
+                <div style='background-color: #808080; padding: 10px; border-radius: 10px; max-width: 80%; text-align: left;'>
+                    {content}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
 
 # Fungsi utama chatbot
 def chatbot_function(email):
     # Streamlit Interface
-    st.header("💬 Product Recommendation Chatbot")
 
     # Inisialisasi sesi untuk menyimpan percakapan dan ID pelanggan
     if "messages" not in st.session_state:
@@ -191,12 +268,41 @@ def chatbot_function(email):
 
     # Menampilkan percakapan sebelumnya
     for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).markdown(msg["content"])
+        chat_message(msg["role"], msg["content"])
+
     # Input pengguna
-    if prompt := st.chat_input(placeholder="Type here for recommend product..."):
+    prompt = st.chat_input(placeholder="Type here for recommend product...")
+    st.markdown("""
+    <style>
+    /* text area chat input */
+    [data-testid="stChatInput"] textarea {
+        border: 1px solid #ffffff !important;
+        border-radius: 8px !important; 
+    }
+
+    /* Chat input submit button */
+    [data-testid="stChatInputSubmitButton"] {
+        border-radius: 50% !important;
+        padding: 0 !important; 
+        background-color: #334092 !important;
+        border: none !important;
+        width: 30px !important;
+        height: 30px !important;
+        position: absolute !important;
+        right: 10px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        display: flex !important;
+        align-items: center !important;  
+        justify-content: center !important;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+    if prompt:
         # Simpan dan tampilkan input pengguna
         st.session_state.messages.append({"role": "user", "content": prompt})
-        st.chat_message("user").write(prompt)
+        chat_message("user", prompt)
         
         try:
             inputs = {"query": prompt, "customer": st.session_state["customer_id"]}
@@ -208,7 +314,8 @@ def chatbot_function(email):
 
         # Simpan dan tampilkan respons dari asisten
         st.session_state.messages.append({"role": "assistant", "content": response})
-        st.chat_message("assistant").markdown(response)
+        #st.chat_message("assistant").markdown(response)
+        chat_message("assistant", response)
 
         # Extract raw output
         output = response
@@ -218,11 +325,12 @@ def chatbot_function(email):
         unique_product_ids = list(set(product_ids))
         st.session_state.product_ids = unique_product_ids
 
-    if st.session_state.product_ids:
-        for product_id in st.session_state.product_ids:
-            # Validasi product_ids di df_product
-            with st.container():
-                render_product(product_id)
+    render_product_horizontal()
+    #if st.session_state.product_ids:
+    #    for product_id in st.session_state.product_ids:
+    #        # Validasi product_ids di df_product
+    #        with st.container():
+    #            render_product(product_id)
 
         # Jika sedang menunggu gambar
     if st.session_state.waiting_for_image:
