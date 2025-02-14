@@ -102,4 +102,4 @@ Welcome! Please provide your Customer ID to start.
 ## NOTES (IMPORTANT!)
 The uploaded image and result from virtual try on will be saved on local, so take a look at your drive.
 
-A
+Author: Putra Al Farizi, Brillyando Magathan Achmad and Khalid Destiawan
