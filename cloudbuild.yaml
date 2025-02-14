@@ -22,7 +22,8 @@ steps:
       '--allow-unauthenticated', 
       '--timeout', '900s', 
       '--set-secrets', 'OPENAI_API_KEY=projects/674306059126/secrets/OPENAI_API_KEY/versions/latest',
-      '--set-secrets', 'REPLICATE_API_TOKEN=projects/674306059126/secrets/REPLICATE_API_TOKEN/versions/latest'
+      #'--set-secrets', 'REPLICATE_API_TOKEN=projects/674306059126/secrets/REPLICATE_API_TOKEN/versions/latest', # provide from group 1 AI Fellowship Batch 1
+      '--set-secrets', 'REPLICATE_API_TOKEN=projects/674306059126/secrets/REPLICATE_API_TOKEN_IYKRA/versions/latest' # provide from Iykra for Event BerandaAI
     ] #
 
 images:
